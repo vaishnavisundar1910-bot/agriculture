@@ -1,0 +1,23 @@
+import express, { type Express, type NextFunction, type Request, type Response } from "express";
+import { fileURLToPath } from "node:url";
+import { dirname, extname, join } from "node:path";
+import { readFileSync } from "node:fs";
+// <api-imports>
+import healthGet from "./api/health/GET";
+// </api-imports>
+import authRouter from "./api/auth";
+import schemesRouter from "./api/schemes";
+import cropsRouter from "./api/crops";
+import livestockRouter from "./api/livestock";
+import consultationsRouter from "./api/consultations";
+import diseasesRouter from "./api/diseases";
+import chatRouter from "./api/chat";
+import weatherRouter from "./api/weather";
+import marketPricesRouter from "./api/market-prices";
+import vaccinationsRouter from "./api/vaccinations";
+import notificationsRouter from "./api/notifications";
+import diseaseDetectionRouter from "./api/disease-detection";
+import adminRouter from "./api/admin";
+// </api-imports>
+import { connectDB } from "./db";
+import { seedDatabase } from "./seed";
