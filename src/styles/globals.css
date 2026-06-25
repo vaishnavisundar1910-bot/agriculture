@@ -1,0 +1,104 @@
+src/styles/globals.css [103 lines]
+     1|@tailwind base;
+     2|@tailwind components;
+     3|@tailwind utilities;
+     4|
+     5|@layer base {
+     6|  :root {
+     7|    /* Core Colors */
+     8|    --background: 0 0% 100%;
+     9|    --foreground: 0 0% 4%;
+    10|    --card: 0 0% 96%;
+    11|    --card-foreground: 0 0% 4%;
+    12|    --popover: 0 0% 100%;
+    13|    --popover-foreground: 0 0% 4%;
+    14|    --primary: 0 0% 25%;
+    15|    --primary-foreground: 0 0% 100%;
+    16|    --secondary: 0 0% 45%;
+    17|    --secondary-foreground: 0 0% 100%;
+    18|    --muted: 0 0% 96%;
+    19|    --muted-foreground: 0 0% 4%;
+    20|    --accent: 0 0% 15%;
+    21|    --accent-foreground: 0 0% 100%;
+    22|    --destructive: 0 84% 60%;
+    23|    --destructive-foreground: 0 0% 100%;
+    24|    --border: 0 0% 90%;
+    25|    --input: 0 0% 90%;
+    26|    --ring: 0 0% 25%;
+    27|
+    28|    /* Extended Colors */
+    29|    --chart-1: 0 0% 55%;
+    30|    --chart-2: 0 0% 40%;
+    31|    --chart-3: 0 0% 25%;
+    32|    --chart-4: 0 0% 10%;
+    33|    --chart-5: 0 0% 0%;
+    34|
+    35|    /* Sidebar Colors */
+    36|    --sidebar: 0 0% 96%;
+    37|    --sidebar-foreground: 0 0% 4%;
+    38|    --sidebar-primary: 0 0% 25%;
+    39|    --sidebar-primary-foreground: 0 0% 100%;
+    40|    --sidebar-accent: 0 0% 15%;
+    41|    --sidebar-accent-foreground: 0 0% 100%;
+    42|    --sidebar-border: 0 0% 90%;
+    43|    --sidebar-ring: 0 0% 25%;
+    44|
+    45|    /* Typography */
+    46|    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    47|    --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    48|    --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+    49|    --font-mono: ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+    50|
+    51|    /* Border Radius */
+    52|    --radius: 0.5rem;
+    53|
+    54|    /* Shadows */
+    55|    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    56|    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    57|    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    58|    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    59|    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+    60|    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+    61|    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+    62|    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    63|  }
+    64|
+    65|  * {
+    66|    @apply border-border;
+    67|  }
+    68|
+    69|  body {
+    70|    @apply bg-background text-foreground font-sans;
+    71|  }
+    72|
+    73|  h1, h2, h3, h4, h5, h6 {
+    74|    font-family: var(--font-heading) !important;
+    75|  }
+    76|}
+    77|
+    78|/* Custom utility classes */
+    79|@layer utilities {
+    80|  .animate-in {
+    81|    animation-duration: 0.2s;
+    82|    animation-fill-mode: both;
+    83|  }
+    84|
+    85|  .fade-in {
+    86|    animation-name: fadeIn;
+    87|  }
+    88|
+    89|  @keyframes fadeIn {
+    90|    from {
+    91|      opacity: 0;
+    92|    }
+    93|    to {
+    94|      opacity: 1;
+    95|    }
+    96|  }
+    97|}
+    98|
+    99|/* Unless told otherwise, keep it for smooth scrolling */
+   100|html {
+   101|  scroll-behavior: smooth;
+   102|}
+   103|
