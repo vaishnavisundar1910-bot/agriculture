@@ -1,0 +1,106 @@
+import { Router } from "express";
+import bcrypt from "bcryptjs";
+import { User } from "../models/User.js";
+import { generateToken, authMiddleware, type AuthRequest } from "../middleware/auth.js";
+import type { Response } from "express";
+
+const router = Router();
+
+// POST /api/auth/register
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, role, phone, location } = req.body;
+    if (!name || !email || !password) {
+      res.status(400).json({ error: "Name, email and password are required" });
+      return;
+    }
+    const existing = await User.findOne({ email });
+    if (existing) {
+      res.status(400).json({ error: "Email already registered" });
+      return;
+    }
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await User.create({ name, email, password: hashed, role: role || "farmer", phone, location });
+    const token = generateToken({ id: user._id.toString(), role: user.role, email: user.email });
+    res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone, location: user.location, language: user.language } });
+  } catch (err) {
+    res.status(500).json({ error: "Registration failed", message: String(err) });
+  }
+});
+
+// POST /api/auth/login
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      res.status(400).json({ error: "Email and password required" });
+      return;
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+    const token = generateToken({ id: user._id.toString(), role: user.role, email: user.email });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone, location: user.location, language: user.language, profileImage: user.profileImage } });
+  } catch (err) {
+    res.status(500).json({ error: "Login failed", message: String(err) });
+  }
+});
+
+// POST /api/auth/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    // Always return success to prevent email enumeration
+    res.json({ message: "If that email exists, a reset link has been sent." });
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+// GET /api/auth/profile
+router.get("/profile", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.user!.id).select("-password");
+    if (!user) { res.status(404).json({ error: "User not found" }); return; }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+// PUT /api/auth/profile
+router.put("/profile", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, phone, location, language, profileImage } = req.body;
+    const user = await User.findByIdAndUpdate(req.user!.id, { name, phone, location, language, profileImage }, { new: true }).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+// PUT /api/auth/change-password
+router.put("/change-password", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user!.id);
+    if (!user) { res.status(404).json({ error: "User not found" }); return; }
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) { res.status(400).json({ error: "Current password is incorrect" }); return; }
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+export default router;
