@@ -1,0 +1,109 @@
+import { Router } from "express";
+import { authMiddleware, adminMiddleware, type AuthRequest } from "../middleware/auth.js";
+import type { Response } from "express";
+import { isDBConnected } from "../db.js";
+import { demoSchemes, type DemoScheme } from "../demo-data.js";
+
+const router = Router();
+
+// GET /api/schemes
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const { category, search } = req.query;
+
+    if (isDBConnected()) {
+      const { Scheme } = await import("../models/Scheme.js");
+      const filter: Record<string, unknown> = { isActive: true };
+      if (category && category !== "all") filter.category = category;
+      if (search) filter.$or = [{ title: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
+      const schemes = await Scheme.find(filter).sort({ createdAt: -1 });
+      res.json(schemes);
+      return;
+    }
+
+    let filtered = demoSchemes.filter((s) => s.isActive);
+    if (category && category !== "all") filtered = filtered.filter((s) => s.category === category);
+    if (search) {
+      const q = (search as string).toLowerCase();
+      filtered = filtered.filter((s) => s.title.toLowerCase().includes(q) || s.description.toLowerCase().includes(q));
+    }
+    res.json(filtered);
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+// GET /api/schemes/:id
+router.get("/:id", authMiddleware, async (req, res) => {
+  try {
+    if (isDBConnected()) {
+      const { Scheme } = await import("../models/Scheme.js");
+      const scheme = await Scheme.findById(req.params.id);
+      if (!scheme) { res.status(404).json({ error: "Scheme not found" }); return; }
+      res.json(scheme);
+      return;
+    }
+    const scheme = demoSchemes.find((s) => s._id === req.params.id);
+    if (!scheme) { res.status(404).json({ error: "Scheme not found" }); return; }
+    res.json(scheme);
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+// POST /api/schemes (admin)
+router.post("/", adminMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    if (isDBConnected()) {
+      const { Scheme } = await import("../models/Scheme.js");
+      const scheme = await Scheme.create(req.body);
+      res.status(201).json(scheme);
+      return;
+    }
+    const newScheme: DemoScheme = { ...req.body, _id: `scheme_${Date.now()}`, isActive: true, createdAt: new Date().toISOString() };
+    demoSchemes.push(newScheme);
+    res.status(201).json(newScheme);
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+// PUT /api/schemes/:id (admin)
+router.put("/:id", adminMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    if (isDBConnected()) {
+      const { Scheme } = await import("../models/Scheme.js");
+      const scheme = await Scheme.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      res.json(scheme);
+      return;
+    }
+    const idx = demoSchemes.findIndex((s) => s._id === req.params.id);
+    if (idx >= 0) {
+      demoSchemes[idx] = { ...demoSchemes[idx], ...req.body };
+      res.json(demoSchemes[idx]);
+    } else {
+      res.status(404).json({ error: "Not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+// DELETE /api/schemes/:id (admin)
+router.delete("/:id", adminMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    if (isDBConnected()) {
+      const { Scheme } = await import("../models/Scheme.js");
+      await Scheme.findByIdAndDelete(req.params.id);
+      res.json({ message: "Deleted" });
+      return;
+    }
+    const idx = demoSchemes.findIndex((s) => s._id === req.params.id);
+    if (idx >= 0) demoSchemes.splice(idx, 1);
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed", message: String(err) });
+  }
+});
+
+export default router;
